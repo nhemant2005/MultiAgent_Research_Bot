@@ -1,23 +1,26 @@
 # MultiAgent Research Bot
 
-A multi-agent AI pipeline that takes any research topic and automatically searches the web, scrapes sources, writes a structured report, and critiques it — all powered by **DeepSeek V4 Flash** and **Tavily Search**, with a clean **Streamlit** frontend.
+A multi-agent AI pipeline that takes any research topic and automatically searches the web, scrapes sources, writes a structured report, critiques it, and **revises it based on the critique** — all powered by **DeepSeek V4 Flash** and **Tavily Search**, with a clean **Streamlit** frontend.
 
 ---
 
-## Demo
+## Live Demo
 
-> Enter a topic → watch 4 agents work in real time → get a fully written and reviewed report.
+**Try it now:** [hemmogptv1.streamlit.app](https://hemmogptv1.streamlit.app/)
 
-![pipeline](https://img.shields.io/badge/pipeline-4--step-blue?style=flat-square)
+> Enter a topic → watch 5 agents work in real time → get a fully written, reviewed, and revised report.
+
+![pipeline](https://img.shields.io/badge/pipeline-5--step-blue?style=flat-square)
 ![model](https://img.shields.io/badge/model-DeepSeek%20V4%20Flash-6366f1?style=flat-square)
 ![search](https://img.shields.io/badge/search-Tavily-22c55e?style=flat-square)
 ![framework](https://img.shields.io/badge/framework-LangChain%20%2B%20LangGraph-f97316?style=flat-square)
+![streamlit](https://img.shields.io/badge/deployed-Streamlit%20Cloud-ff4b4b?style=flat-square)
 
 ---
 
 ## How It Works
 
-The pipeline runs 4 sequential agents/chains:
+The pipeline runs 5 sequential agents/chains:
 
 ```
 User Topic
@@ -48,13 +51,23 @@ User Topic
                        ▼
 ┌─────────────────────────────────────────────────┐
 │  Step 4 · Critic Chain                          │
-│  Reviews the report and returns a score,        │
+│  Reviews the draft and returns a score,         │
 │  strengths, areas to improve, and a verdict.    │
-└──────────────────────┴──────────────────────────┘
+└──────────────────────┬──────────────────────────┘
                        │
                        ▼
-              Final Report + Feedback
+┌─────────────────────────────────────────────────┐
+│  Step 5 · Reviser Chain                         │
+│  Feeds the critic's feedback back to the LLM   │
+│  and rewrites the report, fixing every flagged  │
+│  issue while preserving all strengths.          │
+└──────────────────────┬──────────────────────────┘
+                       │
+                       ▼
+          Final Revised Report + Critic Feedback
 ```
+
+The original draft is preserved and accessible via an expander for comparison.
 
 ---
 
@@ -68,7 +81,7 @@ MultiAgent_Research_Bot/
 ├── .env                       # API keys (not committed)
 └── src/
     ├── agents/
-    │   └── agents.py          # LLM setup, agent builders, writer & critic chains
+    │   └── agents.py          # LLM setup, agent builders, writer, critic & reviser chains
     ├── pipeline/
     │   └── pipeline.py        # Sequential pipeline logic (CLI)
     └── tools/
@@ -86,6 +99,7 @@ MultiAgent_Research_Bot/
 | Web search | Tavily Python SDK |
 | Web scraping | trafilatura · readability-lxml · BeautifulSoup4 |
 | Frontend | Streamlit |
+| Deployment | Streamlit Cloud |
 | Env management | python-dotenv |
 
 ---
@@ -140,11 +154,12 @@ python main.py
 
 ## Usage
 
-1. Open the Streamlit app in your browser (default: `http://localhost:8501`)
+1. Open the Streamlit app in your browser (or visit [hemmogptv1.streamlit.app](https://hemmogptv1.streamlit.app/))
 2. Enter a research topic in the input bar and click **🚀 Research**
-3. Watch each agent step complete in real time
-4. Read the final report and critic feedback side-by-side
-5. Expand the raw search results and scraped content sections for source data
+3. Watch all 5 agent steps complete in real time
+4. Read the **final revised report** and critic feedback side-by-side
+5. Expand **Original Draft** to compare it against the revised version
+6. Expand raw search results and scraped content for source data
 
 ---
 
