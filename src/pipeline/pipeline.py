@@ -13,7 +13,7 @@ def run_research_pipeline(topic: str) -> dict:
     })
     state['search_results'] = search_result['messages'][-1].content
 
-    print("\n search result",state['search_results'])
+    #print("\n search result",state['search_results'])
 
 
     print("\n"+" ="*50)
@@ -31,7 +31,7 @@ def run_research_pipeline(topic: str) -> dict:
 
     state['scraped_content'] = reader_result['messages'][-1].content
 
-    print("\nscraped content: \n", state['scraped_content'])
+    #print("\nscraped content: \n", state['scraped_content'])
 
 
     #step 3 - writer chain 
