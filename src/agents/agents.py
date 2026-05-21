@@ -72,3 +72,20 @@ critic_prompt = ChatPromptTemplate.from_messages([
 ])
 
 critic_chain = critic_prompt | llm | StrOutputParser()
+
+reviser_prompt = ChatPromptTemplate.from_messages([
+    ("system", "You are an expert research writer. Revise reports based on critic feedback to make them sharper and more accurate."),
+    ("human", """You wrote a research report on '{topic}'. A critic has reviewed it and provided feedback below.
+
+     Original Report:
+     {report}
+
+     Critic Feedback:
+     {feedback}
+
+     Rewrite the report, addressing every area flagged by the critic while keeping all the strengths.
+     Use the same structure (Introduction, Key Findings, Conclusion, Sources) and be detailed, factual and professional.
+     """)
+])
+
+reviser_chain = reviser_prompt | llm | StrOutputParser()

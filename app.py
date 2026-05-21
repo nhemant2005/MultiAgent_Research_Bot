@@ -1,5 +1,5 @@
 import streamlit as st
-from src.agents.agents import build_search_agent, build_reader_agent, writer_chain, critic_chain
+from src.agents.agents import build_search_agent, build_reader_agent, writer_chain, critic_chain, reviser_chain
 from dotenv import load_dotenv
 
 load_dotenv()
@@ -106,6 +106,7 @@ with st.sidebar:
         ("📄", "Reader Agent",  "Picks the best URL and scrapes its content"),
         ("✍️",  "Writer Chain",  "Drafts a structured, in-depth report"),
         ("🏆", "Critic Chain",  "Scores the report and suggests improvements"),
+        ("🔄", "Reviser Chain", "Rewrites the report based on critic feedback"),
     ]
     for icon, title, desc in steps:
         st.markdown(f"""
@@ -194,6 +195,14 @@ if run:
         state["feedback"] = critic_chain.invoke({"report": state["report"]})
         s.update(label="✅ Step 4 — Review complete", state="complete", expanded=False)
 
+    with st.status("🔄 Step 5 — Revising based on feedback...", expanded=True) as s:
+        state["revised_report"] = reviser_chain.invoke({
+            "topic": topic,
+            "report": state["report"],
+            "feedback": state["feedback"],
+        })
+        s.update(label="✅ Step 5 — Revision complete", state="complete", expanded=False)
+
     st.session_state.results = state
     st.success("Research complete! Your report is ready below.", icon="✅")
 
@@ -204,9 +213,9 @@ if st.session_state.results:
     col1, col2 = st.columns(2, gap="large")
 
     with col1:
-        st.markdown('<div class="result-header">📄 Research Report</div>', unsafe_allow_html=True)
+        st.markdown('<div class="result-header">📄 Final Report (Revised)</div>', unsafe_allow_html=True)
         with st.container(border=True):
-            st.markdown(results["report"])
+            st.markdown(results["revised_report"])
 
     with col2:
         st.markdown('<div class="result-header">🏆 Critic Feedback</div>', unsafe_allow_html=True)
@@ -214,6 +223,8 @@ if st.session_state.results:
             st.markdown(results["feedback"])
 
     st.markdown("<br>", unsafe_allow_html=True)
+    with st.expander("✍️ Original Draft (before revision)"):
+        st.markdown(results["report"])
     with st.expander("🔍 Raw Search Results"):
         st.code(results["search_results"], language=None)
     with st.expander("🌐 Scraped Content"):

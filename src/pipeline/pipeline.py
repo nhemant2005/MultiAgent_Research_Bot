@@ -1,4 +1,4 @@
-from src.agents.agents import build_reader_agent, build_search_agent, writer_chain, critic_chain
+from src.agents.agents import build_reader_agent, build_search_agent, writer_chain, critic_chain, reviser_chain
 
 def run_research_pipeline(topic: str) -> dict:
     state = {}
@@ -50,20 +50,27 @@ def run_research_pipeline(topic: str) -> dict:
         "research" : research_combined
     })
 
-    print("\n Final Report\n",state['report'])
-
-
-    #critic report 
-
     print("\n"+" ="*50)
-    print("step 4 - critic is reviewing the report ")
+    print("step 4 - Critic is reviewing the draft ...")
     print("="*50)
 
     state["feedback"] = critic_chain.invoke({
-        "report":state['report']
+        "report": state['report']
     })
 
-    print("\n critic report \n", state['feedback'])
+    print("\n Critic Feedback\n", state['feedback'])
+
+    print("\n"+" ="*50)
+    print("step 5 - Writer is revising based on feedback ...")
+    print("="*50)
+
+    state["revised_report"] = reviser_chain.invoke({
+        "topic": topic,
+        "report": state['report'],
+        "feedback": state['feedback']
+    })
+
+    print("\n Final Revised Report\n", state['revised_report'])
 
     return state
 
