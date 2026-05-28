@@ -1,5 +1,6 @@
 import streamlit as st
 from src.agents.agents import build_search_agent, build_reader_agent, writer_chain, critic_chain, reviser_chain
+from src.rate_limiter import consume_request, get_status, DAILY_LIMIT
 from dotenv import load_dotenv
 
 load_dotenv()
@@ -128,6 +129,13 @@ with st.sidebar:
         <span class="pill">LangGraph</span>
     </div>""", unsafe_allow_html=True)
 
+    st.markdown("<hr style='border-color:#1f2937;margin:16px 0 10px 0'>", unsafe_allow_html=True)
+    _used, _limit = get_status()
+    st.markdown("**Daily Usage**")
+    st.progress(_used / _limit, text=f"{_used} / {_limit} requests used today")
+    if _used >= _limit:
+        st.error("Daily limit reached. Resets at midnight UTC.", icon="🚫")
+
     st.markdown("")
     st.info("Thinking mode is disabled so agents work correctly with multi-turn tool calls.", icon="ℹ️")
 
@@ -151,7 +159,15 @@ with col_in:
         label_visibility="collapsed",
     )
 with col_btn:
-    run = st.button("🚀 Research", type="primary", disabled=not topic.strip(), use_container_width=True)
+    _used_now, _ = get_status()
+    _limit_reached = _used_now >= DAILY_LIMIT
+    run = st.button(
+        "🚀 Research",
+        type="primary",
+        disabled=not topic.strip() or _limit_reached,
+        use_container_width=True,
+        help="Daily request limit reached. Please try again tomorrow." if _limit_reached else None,
+    )
 
 if st.session_state.last_topic:
     with st.chat_message("user"):
@@ -159,6 +175,11 @@ if st.session_state.last_topic:
 
 # ── Pipeline ───────────────────────────────────────────────────────────────
 if run:
+    _allowed, _count, _daily_limit = consume_request()
+    if not _allowed:
+        st.error(f"Daily limit of {_daily_limit} requests reached. Please try again tomorrow.")
+        st.stop()
+
     st.session_state.results    = None
     st.session_state.last_topic = topic
     state = {}
